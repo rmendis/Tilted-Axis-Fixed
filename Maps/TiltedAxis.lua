@@ -57,7 +57,7 @@ function GenerateMap()
 	g_xCenter = math.ceil(g_iW / 2);
 	g_iNumEquator = math.ceil(g_iH / 2);
 
-	g_iE = math.ceil(g_iW / 2);
+	g_iE = math.floor(g_iW / 4);
 	
 	local temperature = MapConfiguration.GetValue("temperature"); -- Default setting is Temperate.
 	if temperature == 4 then
@@ -81,7 +81,7 @@ function GenerateMap()
 	ApplyBaseTerrain(plotTypes, terrainTypes, g_iW, g_iH);
 
 	AreaBuilder.Recalculate();
-	TerrainBuilder.AnalyzeChokepoints();
+	--TerrainBuilder.AnalyzeChokepoints();
 	TerrainBuilder.StampContinents();
 
 	local iContinentBoundaryPlots = GetContinentBoundaryPlotCount(g_iW, g_iH);
@@ -108,10 +108,11 @@ function GenerateMap()
 	iMarshPercent = 1 + rainfall / 2;
 	iReefPercent = 8;
 	
-	local args = {rainfall = rainfall}
+	local args = {rainfall = rainfall,  iIcePercent = 12};
 	featuregen = FeatureGenerator.Create(args);
+	featuregen:AddFeatures(true, true);  --second parameter is whether or not rivers start inland);
 	
-	AddFeatures();
+	-- AddFeatures();
 	
 	TerrainBuilder.AnalyzeChokepoints();
 	
@@ -535,7 +536,7 @@ function AddFeatures()
 		-- adding feature ice, so the recalc was removed from here and put in MapGenerator()
 	end
 
-	AddIceToMap();
+	--AddIceToMap();
 	
 	-- Main loop, adds features to all plots as appropriate based on the count and percentage of that type, but not ones that can't be adjacent to other features
 	for y = 0, g_iH - 1, 1 do
@@ -641,9 +642,10 @@ function AddForestsAtPlot(plot, iX, iY)
 		end
 	end
 end
+
 ------------------------------------------------------------------------------
-function AddIceToMap()
-	local iTargetIceTiles = (g_iH * g_iW *  GlobalParameters.ICE_TILES_PERCENT) / 100 / 2;
+function FeatureGenerator:AddIceToMap()
+	local iTargetIceTiles = (self.iGridH * self.iGridW *  (GlobalParameters.ICE_TILES_PERCENT + self.iIceModifiedPercent)) / 100;
 
 	local aPhases = {};
 	local iPhases = 0;
@@ -670,28 +672,22 @@ function AddIceToMap()
 
 	print ("Permanent Ice Tiles: " .. tostring(iPermanentIceTiles));
 
-	-- Count top/bottom map tiles
-	
-	local MapSizeTypes = {};
-	for row in GameInfo.Maps() do
-		MapSizeTypes[row.MapSizeType] = row.PlateValue;
-	end
-	local sizekey = Map.GetMapSize();
+	local iPercentNeeded = iPermanentIceTiles / iTargetIceTiles * 100;
 
-	local numPlates = MapSizeTypes[sizekey] or 4
-	local iPhase1 = numPlates;
-	local iPhase2 = numPlates * 2;
+	-- poles
+	for x = 0, self.iGridW - 1, 1 do
+		for y = self.iGridH - 1, 0, -1 do
+			local _lat = _GetRadialLatitudeAtPlot(variationFrac, x, y);
 
-	local iPercentNeeded = 25 * iPermanentIceTiles / (iPhase1 * iPhase1);
+			if (_lat > iceLat or _lat < -iceLat) then
+				local i = y * self.iGridW + x;
 
-	for dx = -iPhase1, iPhase1 do
-		for dy = -iPhase1,iPhase1 do
-			local plot = Map.GetPlotXY(g_xCenter, g_yCenter, dx, dy, iPhase1);
-			if (plot ~= nil) then
-				if(TerrainBuilder.CanHaveFeature(plot, g_FEATURE_ICE)) then
-					if (TerrainBuilder.GetRandomNumber(65, "Permanent Ice") <= iPercentNeeded) then
-						TerrainBuilder.SetFeatureType(plot, g_FEATURE_ICE);
-						TerrainBuilder.AddIce(plot:GetIndex(), -1); 
+				local plot = Map.GetPlotByIndex(i);
+				if (plot ~= nil) then
+					if(TerrainBuilder.CanHaveFeature(plot, g_FEATURE_ICE) == true and IsAdjacentToLandPlot(x, y) == false) then
+						if (TerrainBuilder.GetRandomNumber(100, "Permanent Ice") <= iPercentNeeded) then
+							AddIceAtPlot(plot, x, y, -1); 
+						end
 					end
 				end
 			end
@@ -716,16 +712,17 @@ function AddIceToMap()
 
 			-- Find all plots on map adjacent to already-placed ice
 			local aTargetPlots = {};
-			for dx = -iPhase2, iPhase2 do
-				for dy = -iPhase2,iPhase2 do
-					local plot = Map.GetPlotXY(g_xCenter , g_yCenter, dx, dy, iPhase2);
+			for y = 0, self.iGridH - 1, 1 do
+				for x = 0, self.iGridW - 1, 1 do
+					local i = y * self.iGridW + x;
+					local plot = Map.GetPlotByIndex(i);
 					if (plot ~= nil) then
 						local iAdjacent = TerrainBuilder.GetAdjacentFeatureCount(plot, g_FEATURE_ICE);
 						if (TerrainBuilder.CanHaveFeature(plot, g_FEATURE_ICE) == true and iAdjacent > 0) then
 							local kPlotDetails = {};
 							kPlotDetails.PlotIndex = i;
 							kPlotDetails.AdjacentIce = iAdjacent;
-							kPlotDetails.AdjacentToLand = IsAdjacentToLandPlot(dx, dy);
+							kPlotDetails.AdjacentToLand = IsAdjacentToLandPlot(x, y);
 							table.insert(aTargetPlots, kPlotDetails);
 						end
 					end
@@ -742,14 +739,36 @@ function AddIceToMap()
 					end
 					if (TerrainBuilder.GetRandomNumber(100, "Permanent Ice") <= iFinalPercentNeeded) then
 					    local plot = Map.GetPlotByIndex(targetPlot.PlotIndex);
-						TerrainBuilder.SetFeatureType(plot, g_FEATURE_ICE);
-						TerrainBuilder.AddIce(plot:GetIndex(), kPhaseDetails.RandomEventEnum); 
+						AddIceAtPlot(plot, plot:GetX(), plot:GetY(), kPhaseDetails.RandomEventEnum); 
 					end
 				end
 			end
 		end
 	end
 end
+
+-- override: radial poles
+function AddIceAtPlot(plot, iX, iY, iE)
+	local _lat = _GetRadialLatitudeAtPlot(variationFrac, iX, iY);
+	local lat = math.abs(_lat);
+	
+	local iScore = TerrainBuilder.GetRandomNumber(100, "Resource Placement Score Adjust");
+
+	iScore = iScore + (lat * 100);
+
+	if(IsAdjacentToLandPlot(iX,iY) == true) then
+		iScore = iScore / math.sqrt(2.0);			-- only difference from non-radial map
+	end
+
+	local iAdjacent = TerrainBuilder.GetAdjacentFeatureCount(plot, g_FEATURE_ICE);
+	iScore = iScore + 10.0 * iAdjacent;
+
+	if(iScore > 130) then
+		TerrainBuilder.SetFeatureType(plot, g_FEATURE_ICE);
+		TerrainBuilder.AddIce(plot:GetIndex(), iE); 
+	end
+end
+
 ------------------------------------------------------------------------------
 function AddJunglesAtPlot(plot, iX, iY)
 	--Jungle Check. First see if it can place the feature.
@@ -872,13 +891,13 @@ function GenerateTerrainTypes(plotTypes)
 	plains = Fractal.Create(g_iW, g_iH, 
 									grain_amount, g_iFlags, 
 									fracXExp, fracYExp);
+																		
+	iPlainsTop = plains:GetHeight(iPlainsTopPercent);
+	iPlainsBottom = plains:GetHeight(iPlainsBottomPercent);
 
 	variationFrac = Fractal.Create(g_iW, g_iH, 
 									grain_amount, g_iFlags, 
 									fracXExp, fracYExp);
-																		
-	iPlainsTop = plains:GetHeight(iPlainsTopPercent);
-	iPlainsBottom = plains:GetHeight(iPlainsBottomPercent);
 	
 	for iX = 0, g_iW - 1 do
 		for iY = 0, g_iH - 1 do
@@ -1005,7 +1024,7 @@ end
 -- LATITUDE LOOKUP
 ----------------------------------------------------------------------------------
 function _GetRadialLatitudeAtPlot(variationFrac, iX, iY)
-	local iZ = __GetPlotDistance(iX, iY, g_CenterX, g_CenterY);		-- radial distance from center
+	local iZ = __GetPlotDistance(iX, iY, g_xCenter, g_yCenter);		-- radial distance from center
 
 	if (iZ < 2*g_iE) then
 		-- Terrain bands are governed by latitude (in rad).
