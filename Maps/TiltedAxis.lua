@@ -102,11 +102,11 @@ function GenerateMap()
 		rainfall = 1 + TerrainBuilder.GetRandomNumber(3, "Random Rainfall - Lua");
 	end
 	
-	iJunglePercent = 40 + rainfall;
+	iJunglePercent = 8 + rainfall;
 	iForestPercent = 18 + rainfall;
 	iMarshPercent = 1 + rainfall / 2;
 	
-	local args = {rainfall = rainfall,  iIcePercent = 12, iReefPercent = 8};
+	local args = {rainfall = rainfall,  iIcePercent = 12, iReefPercent = 8, iMarshPercent = iMarshPercent, iForestPercent= iForestPercent, iJunglePercent = iJunglePercent};
 	featuregen = FeatureGenerator.Create(args);
 	featuregen:AddFeatures(true, true);  --second parameter is whether or not rivers start inland);
 	
