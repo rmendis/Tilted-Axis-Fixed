@@ -112,8 +112,6 @@ function GenerateMap()
 	featuregen = FeatureGenerator.Create(args);
 	featuregen:AddFeatures(true, true);  --second parameter is whether or not rivers start inland);
 	
-	-- AddFeatures();
-	
 	TerrainBuilder.AnalyzeChokepoints();
 	
 	print("Adding cliffs");
@@ -505,145 +503,6 @@ function AddFeaturesFromContinents()
 end
 
 ------------------------------------------------------------------------------
-function AddFeatures()
-	print("Adding Features");
-
-	-- Get Rainfall setting input by user.
-	local rainfall = MapConfiguration.GetValue("rainfall");
-	if rainfall == 4 then
-		rainfall = 1 + TerrainBuilder.GetRandomNumber(3, "Random Rainfall - Lua");
-	end
-	
-	-- First let's add Floodplains
-	local iMinFloodplainSize = 4;
-	local iMaxFloodplainSize = 10;
-	TerrainBuilder.GenerateFloodplains(bRiversStartInland, iMinFloodplainSize, iMaxFloodplainSize);
-
-	local flag = allow_mountains_on_coast or true;
-
-	if allow_mountains_on_coast == false then -- remove any mountains from coastal plots
-		for x = 0, g_iW - 1 do
-			for y = 0, g_iH - 1 do
-				local plot = Map.GetPlot(x, y)
-				if plot:GetPlotType() == g_PLOT_TYPE_MOUNTAIN then
-					if plot:IsCoastalLand() then
-						plot:SetPlotType(g_PLOT_TYPE_HILLS, false, true); -- These flags are for recalc of areas and rebuild of graphics. Instead of recalc over and over, do recalc at end of loop.
-					end
-				end
-			end
-		end
-		-- This function needs to recalculate areas after operating. However, so does 
-		-- adding feature ice, so the recalc was removed from here and put in MapGenerator()
-	end
-
-	--AddIceToMap();
-	
-	-- Main loop, adds features to all plots as appropriate based on the count and percentage of that type, but not ones that can't be adjacent to other features
-	for y = 0, g_iH - 1, 1 do
-		for x = 0, g_iW - 1, 1 do
-			
-			local i = y * g_iW + x;
-			local plot = Map.GetPlotByIndex(i);
-			if(plot ~= nil) then
-				local featureType = plot:GetFeatureType();
-
-				if(plot:IsImpassable() or featureType ~= g_FEATURE_NONE) then
-					--No Feature
-				elseif(plot:IsWater() == true) then					
-					if(TerrainBuilder.CanHaveFeature(plot, g_FEATURE_REEF) == true ) then
-						
-						AddReefAtPlot(plot, x, y);
-					end
-				else
-					iNumLandPlots = iNumLandPlots + 1;
-
-					local bMarsh = false;
-					local bJungle = false;
-					--None of these are guarenteed
-					if(featureType == g_FEATURE_NONE) then
-						--First check to add Marsh
-						bMarsh = AddMarshAtPlot(plot, x, y);
-
-						if(featureType == g_FEATURE_NONE and  bMarsh == false) then
-							--check to add Jungle
-							bJungle = AddJunglesAtPlot(plot, x, y);
-						end
-						
-						if(featureType == g_FEATURE_NONE and bMarsh== false and bJungle == false) then 
-							--check to add Forest
-							AddForestsAtPlot(plot, x, y);
-						end
-					end
-				end
-			end
-		end
-	end
-end
-------------------------------------------------------------------------------
-function AddMarshAtPlot(plot, iX, iY)
-	--Marsh Check. First see if it can place the feature.
-	
-	if(TerrainBuilder.CanHaveFeature(plot, g_FEATURE_MARSH)) then
-		if(math.ceil(iMarshCount * 100 / iNumLandPlots) <= iMarshPercent) then
-			--Weight based on adjacent plots if it has more than 3 start subtracting
-			local iScore = 300;
-			local iAdjacent = TerrainBuilder.GetAdjacentFeatureCount(plot, g_FEATURE_MARSH);
-				
-
-			if(iAdjacent == 0 ) then
-				iScore = iScore;
-			elseif(iAdjacent == 1) then
-				iScore = iScore + 50;
-			elseif (iAdjacent == 2 or iAdjacent == 3) then
-				iScore = iScore + 150;
-			elseif (iAdjacent == 4) then
-				iScore = iScore - 50;
-			else
-				iScore = iScore - 200;
-			end
-				
-			if(TerrainBuilder.GetRandomNumber(450, "Resource Placement Score Adjust") <= iScore) then
-				TerrainBuilder.SetFeatureType(plot, g_FEATURE_MARSH);
-				iMarshCount = iMarshCount + 1;
-
-				return true;
-			end
-		end
-	end
-
-	return false;
-end
-------------------------------------------------------------------------------
-function AddForestsAtPlot(plot, iX, iY)
-	--Forest Check. First see if it can place the feature.
-	
-	if(TerrainBuilder.CanHaveFeature(plot, g_FEATURE_FOREST)) then
-		if(math.ceil(iForestCount * 100 / iNumLandPlots) <= iForestPercent) then
-			--Weight based on adjacent plots if it has more than 3 start subtracting
-			local iScore = 300;
-			local iAdjacent = TerrainBuilder.GetAdjacentFeatureCount(plot, g_FEATURE_FOREST);
-
-			if(iAdjacent == 0 ) then
-				iScore = iScore;
-			elseif(iAdjacent == 1) then
-				iScore = iScore + 50;
-			elseif (iAdjacent == 2 or iAdjacent == 3) then
-				iScore = iScore + 150;
-			elseif (iAdjacent == 4) then
-				iScore = iScore - 50;
-			else
-				iScore = iScore - 200;
-			end
-				
-			if(TerrainBuilder.GetRandomNumber(450, "Resource Placement Score Adjust") <= iScore) then
-				TerrainBuilder.SetFeatureType(plot, g_FEATURE_FOREST);
-				iForestCount = iForestCount + 1;
-			end
-		end
-	end
-end
-
-------------------------------------------------------------------------------
 function FeatureGenerator:AddIceToMap()
 	local iTargetIceTiles = (self.iGridH * self.iGridW *  (GlobalParameters.ICE_TILES_PERCENT + self.iIceModifiedPercent)) / 100;
 
@@ -769,17 +628,15 @@ function AddIceAtPlot(plot, iX, iY, iE)
 	end
 end
 
+-- override: for a radial equator 
 ------------------------------------------------------------------------------
-function AddJunglesAtPlot(plot, iX, iY)
-	--Jungle Check. First see if it can place the feature.
-	local iDistance = __GetPlotDistance(iX, iY, g_xCenter, g_yCenter);
-	local iJungleBottom = g_iNumEquator - (20 * g_iH / 180);
-	local iJungleTop = g_iNumEquator + (20 * g_iH / 180);
-	
+function FeatureGenerator:AddJunglesAtPlot(plot, iX, iY)
+	local lat = GetRadialLatitudeAtPlot(variationFrac, iX, iY);
+
+	--Jungle Check. First see if it can place the feature.	
 	if(TerrainBuilder.CanHaveFeature(plot, g_FEATURE_JUNGLE)) then
-		if(iDistance >= iJungleBottom and iDistance <= iJungleTop) then 
-			iNumJunglablePlots = iNumJunglablePlots + 1;
-			if(math.ceil(iJungleCount * 100 / iNumJunglablePlots) <= iJunglePercent) then
+		if(math.ceil(self.iJungleCount * 100 / self.iNumLandPlots) <= self.iJungleMaxPercent) then
+			if(lat < 0.26) then		-- tropics 
 				--Weight based on adjacent plots if it has more than 3 start subtracting
 				local iScore = 300;
 				local iAdjacent = TerrainBuilder.GetAdjacentFeatureCount(plot, g_FEATURE_JUNGLE);
@@ -796,7 +653,7 @@ function AddJunglesAtPlot(plot, iX, iY)
 					iScore = iScore - 200;
 				end
 
-				if(TerrainBuilder.GetRandomNumber(450, "Resource Placement Score Adjust") <= iScore) then
+				if(TerrainBuilder.GetRandomNumber(300, "Resource Placement Score Adjust") <= iScore) then
 					TerrainBuilder.SetFeatureType(plot, g_FEATURE_JUNGLE);
 					local terrainType = plot:GetTerrainType();
 
@@ -806,7 +663,7 @@ function AddJunglesAtPlot(plot, iX, iY)
 						TerrainBuilder.SetTerrainType(plot, g_TERRAIN_TYPE_PLAINS);
 					end
 
-					iJungleCount = iJungleCount + 1;
+					self.iJungleCount = self.iJungleCount + 1;
 					return true;
 				end
 			end
@@ -815,16 +672,18 @@ function AddJunglesAtPlot(plot, iX, iY)
 
 	return false
 end
+
 ------------------------------------------------------------------------------
-function AddReefAtPlot(plot, iX, iY)
+function FeatureGenerator:AddReefAtPlot(plot, iX, iY)
+	local lat = GetRadialLatitudeAtPlot(variationFrac, iX, iY);
+
 	--Reef Check. First see if it can place the feature.
-	local iDistance = __GetPlotDistance(iX, iY, g_xCenter, g_yCenter);
-	local iPole =  math.ceil(g_iH - g_iH * 0.9);
-	if(TerrainBuilder.CanHaveFeature(plot, g_FEATURE_REEF) and iDistance > iPole) then
-		iNumReefablePlots = iNumReefablePlots + 1;
-		if(math.ceil(iReefCount * 100 / iNumReefablePlots) <= iReefPercent) then
+	if(TerrainBuilder.CanHaveFeature(plot, g_FEATURE_REEF) and lat < 0.38) then		-- northern most reefs
+		self.iNumReefablePlots = self.iNumReefablePlots + 1;
+		if(math.ceil(self.iReefCount * 100 / self.iNumReefablePlots) <= self.iReefMaxPercent) then
+
 				--Weight based on adjacent plots
-				local iScore  = 3 * math.ceil((iDistance - iPole) / 2);
+				local iScore  = 3 * g_iE * lat;
 				local iAdjacent = TerrainBuilder.GetAdjacentFeatureCount(plot, g_FEATURE_REEF);
 
 				if(iAdjacent == 0 ) then
@@ -841,11 +700,12 @@ function AddReefAtPlot(plot, iX, iY)
 
 				if(TerrainBuilder.GetRandomNumber(200, "Resource Placement Score Adjust") >= iScore) then
 					TerrainBuilder.SetFeatureType(plot, g_FEATURE_REEF);
-					iReefCount = iReefCount + 1;
+					self.iReefCount = self.iReefCount + 1;
 				end
 		end
 	end
 end
+
 ------------------------------------------------------------------------------
 function GenerateTerrainTypes(plotTypes)
 	print("Generating Terrain Types");
