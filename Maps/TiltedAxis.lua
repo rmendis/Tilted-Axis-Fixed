@@ -32,7 +32,6 @@ local iNumLandPlots = 0;
 local iJunglePercent = 0;
 local iForestPercent = 0;
 local iMarshPercent = 0;
-local iReefPercent = 0;
 local iceLat = 0.78;
 local iForestCount = 0;
 local iJungleCount = 0;
@@ -57,7 +56,7 @@ function GenerateMap()
 	g_xCenter = math.ceil(g_iW / 2);
 	g_iNumEquator = math.ceil(g_iH / 2);
 
-	g_iE = math.floor(g_iW / 4);
+	g_iE = math.ceil(g_iW / 4);
 	
 	local temperature = MapConfiguration.GetValue("temperature"); -- Default setting is Temperate.
 	if temperature == 4 then
@@ -106,9 +105,8 @@ function GenerateMap()
 	iJunglePercent = 40 + rainfall;
 	iForestPercent = 18 + rainfall;
 	iMarshPercent = 1 + rainfall / 2;
-	iReefPercent = 8;
 	
-	local args = {rainfall = rainfall,  iIcePercent = 12};
+	local args = {rainfall = rainfall,  iIcePercent = 12, iReefPercent = 8};
 	featuregen = FeatureGenerator.Create(args);
 	featuregen:AddFeatures(true, true);  --second parameter is whether or not rivers start inland);
 	
