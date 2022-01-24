@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Default" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Default</Configuration>
+    <Name>Tilted Axis Fixed</Name>
+    <Guid>8c4ba8f6-0500-402b-9ec3-3d3760c491c2</Guid>
+    <ProjectGuid>aa0b036f-2a80-4812-9ee5-2ec008e85c2d</ProjectGuid>
+    <ModVersion>1</ModVersion>
+    <Teaser>Bugfixed Tilted Axis: radial terrain and landform generation. Azimuth ice shelf.</Teaser>
+    <Description>Bugfixed Tilted Axis: radial terrain and landform generation. Azimuth ice shelf.</Description>
+    <Authors>blkbutterfly74</Authors>
+    <SpecialThanks>
+    </SpecialThanks>
+    <AffectsSavedGames>false</AffectsSavedGames>
+    <SupportsSinglePlayer>true</SupportsSinglePlayer>
+    <SupportsMultiplayer>true</SupportsMultiplayer>
+    <SupportsHotSeat>true</SupportsHotSeat>
+    <CompatibleVersions>1.2,2.0</CompatibleVersions>
+    <AssemblyName>Tilted Axis Fixed</AssemblyName>
+    <RootNamespace>Tilted Axis Fixed</RootNamespace>
+    <FrontEndActionData><![CDATA[<FrontEndActions><AddMap id="AddMap"><Properties><Description>Tilted Axis bugfix. Radial terrain, landform and ice.</Description><Name>Tilted Axis (Fixed)</Name><Image>Map_TiltedAxis</Image><Group>Maps:Expansion2Maps</Group></Properties><File>Maps/TiltedAxis.lua</File></AddMap></FrontEndActions>]]></FrontEndActionData>
+    <InGameActionData><![CDATA[<InGameActions><ImportFiles id="ImportMap"><File>Maps/TiltedAxis.lua</File></ImportFiles></InGameActions>]]></InGameActionData>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Default' ">
+    <OutputPath>.</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="Maps" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Maps\TiltedAxis.lua">
+      <SubType>Content</SubType>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildLocalExtensionPath)Civ6.targets" />
+</Project>
