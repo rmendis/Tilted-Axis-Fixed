@@ -868,16 +868,6 @@ function __GetPlotDistance(iX1, iY1, iX0, iY0)
 	return math.sqrt((iX1-iX0)^2 + (iY1-iY0)^2);
 end
 
--- the angle of (iX1, iY1) relative to (iX0, iY0) in degrees
-function Azimuth(iX1, iY1, iX0, iY0)
-	return math.deg(_Azimuth(iX1, iY1, iX0, iY0));
-end
-
--- the angle of (iX1, iY1) relative to (iX0, iY0)
-function _Azimuth(iX1, iY1, iX0, iY0)
-	return math.atan2(iY1-iY0, iX1-iX0);
-end
-
 ----------------------------------------------------------------------------------
 -- LATITUDE LOOKUP
 ----------------------------------------------------------------------------------
