@@ -534,9 +534,9 @@ function FeatureGenerator:AddIceToMap()
 	-- poles
 	for x = 0, self.iGridW - 1, 1 do
 		for y = self.iGridH - 1, 0, -1 do
-			local _lat = _GetRadialLatitudeAtPlot(variationFrac, x, y);
+			local lat = GetRadialLatitudeAtPlot(variationFrac, x, y);
 
-			if (_lat > iceLat or _lat < -iceLat) then
+			if (lat > iceLat) then
 				local i = y * self.iGridW + x;
 
 				local plot = Map.GetPlotByIndex(i);
@@ -606,23 +606,24 @@ end
 
 -- override: radial poles
 function AddIceAtPlot(plot, iX, iY, iE)
-	local _lat = _GetRadialLatitudeAtPlot(variationFrac, iX, iY);
-	local lat = math.abs(_lat);
+	local lat = GetRadialLatitudeAtPlot(variationFrac, iX, iY);
 	
-	local iScore = TerrainBuilder.GetRandomNumber(100, "Resource Placement Score Adjust");
+	if (lat > iceLat) then
+		local iScore = TerrainBuilder.GetRandomNumber(100, "Resource Placement Score Adjust");
 
-	iScore = iScore + (lat * 100);
+		iScore = iScore + (lat * 100);
 
-	if(IsAdjacentToLandPlot(iX,iY) == true) then
-		iScore = iScore / math.sqrt(2.0);			-- only difference from non-radial map
-	end
+		if(IsAdjacentToLandPlot(iX,iY) == true) then
+			iScore = iScore / math.sqrt(2.0);			-- only difference from non-radial map
+		end
 
-	local iAdjacent = TerrainBuilder.GetAdjacentFeatureCount(plot, g_FEATURE_ICE);
-	iScore = iScore + 10.0 * iAdjacent;
+		local iAdjacent = TerrainBuilder.GetAdjacentFeatureCount(plot, g_FEATURE_ICE);
+		iScore = iScore + 10.0 * iAdjacent;
 
-	if(iScore > 130) then
-		TerrainBuilder.SetFeatureType(plot, g_FEATURE_ICE);
-		TerrainBuilder.AddIce(plot:GetIndex(), iE); 
+		if(iScore > 130) then
+			TerrainBuilder.SetFeatureType(plot, g_FEATURE_ICE);
+			TerrainBuilder.AddIce(plot:GetIndex(), iE); 
+		end
 	end
 end
 
