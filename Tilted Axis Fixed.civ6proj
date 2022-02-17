@@ -5,7 +5,7 @@
     <Name>Tilted Axis Fixed</Name>
     <Guid>8c4ba8f6-0500-402b-9ec3-3d3760c491c2</Guid>
     <ProjectGuid>aa0b036f-2a80-4812-9ee5-2ec008e85c2d</ProjectGuid>
-    <ModVersion>1</ModVersion>
+    <ModVersion>2</ModVersion>
     <Teaser>Bugfixed Tilted Axis: radial terrain and landform generation. Azimuth ice shelf.</Teaser>
     <Description>Bugfixed Tilted Axis: radial terrain and landform generation. Azimuth ice shelf.</Description>
     <Authors>blkbutterfly74</Authors>
@@ -19,16 +19,21 @@
     <AssemblyName>Tilted Axis Fixed</AssemblyName>
     <RootNamespace>Tilted Axis Fixed</RootNamespace>
     <FrontEndActionData><![CDATA[<FrontEndActions><AddMap id="AddMap"><Properties><Description>Tilted Axis bugfix. Radial terrain, landform and ice.</Description><Name>Tilted Axis (Fixed)</Name><Image>Map_TiltedAxis</Image><Group>Maps:Expansion2Maps</Group></Properties><File>Maps/TiltedAxis.lua</File></AddMap></FrontEndActions>]]></FrontEndActionData>
-    <InGameActionData><![CDATA[<InGameActions><ImportFiles id="ImportMap"><File>Maps/TiltedAxis.lua</File></ImportFiles></InGameActions>]]></InGameActionData>
+    <InGameActionData><![CDATA[<InGameActions><ImportFiles id="ImportMap"><File>Maps/TiltedAxis.lua</File></ImportFiles><UpdateDatabase id="UpdateGlobalParams"><Criteria>TiltedAxisMapInUse</Criteria><File>XML/TiltedAxis.xml</File></UpdateDatabase></InGameActions>]]></InGameActionData>
+    <ActionCriteriaData><![CDATA[<ActionCriteria><Criteria id="TiltedAxisMapInUse"><MapInUse>{8c4ba8f6-0500-402b-9ec3-3d3760c491c2}/Maps/TiltedAxis.lua</MapInUse></Criteria></ActionCriteria>]]></ActionCriteriaData>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Default' ">
     <OutputPath>.</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="Maps" />
+    <Folder Include="XML" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Maps\TiltedAxis.lua">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="XML\TiltedAxis.xml">
       <SubType>Content</SubType>
     </Content>
   </ItemGroup>

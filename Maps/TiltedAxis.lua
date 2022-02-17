@@ -106,7 +106,7 @@ function GenerateMap()
 	iForestPercent = 18 + rainfall;
 	iMarshPercent = 1 + rainfall / 2;
 	
-	local args = {rainfall = rainfall,  iIcePercent = 12, iReefPercent = 8, iMarshPercent = iMarshPercent, iForestPercent= iForestPercent, iJunglePercent = iJunglePercent};
+	local args = {rainfall = rainfall, iReefPercent = 8, iMarshPercent = iMarshPercent, iForestPercent= iForestPercent, iJunglePercent = iJunglePercent};
 	featuregen = FeatureGenerator.Create(args);
 	featuregen:AddFeatures(true, true);  --second parameter is whether or not rivers start inland);
 	
