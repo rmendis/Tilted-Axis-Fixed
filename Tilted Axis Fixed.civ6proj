@@ -18,19 +18,27 @@
     <CompatibleVersions>1.2,2.0</CompatibleVersions>
     <AssemblyName>Tilted Axis Fixed</AssemblyName>
     <RootNamespace>Tilted Axis Fixed</RootNamespace>
-    <FrontEndActionData><![CDATA[<FrontEndActions><AddMap id="AddMap"><Properties><Description>Tilted Axis bugfix. Radial terrain, landform and ice.</Description><Name>Tilted Axis (Fixed)</Name><Image>Map_TiltedAxis</Image><Group>Maps:Expansion2Maps</Group></Properties><File>Maps/TiltedAxis.lua</File></AddMap></FrontEndActions>]]></FrontEndActionData>
+    <FrontEndActionData><![CDATA[<FrontEndActions><UpdateDatabase id="UpdateConfig"><File>SQL/Config.sql</File></UpdateDatabase></FrontEndActions>]]></FrontEndActionData>
     <InGameActionData><![CDATA[<InGameActions><ImportFiles id="ImportMap"><File>Maps/TiltedAxis.lua</File></ImportFiles><UpdateDatabase id="UpdateGlobalParams"><Criteria>TiltedAxisMapInUse</Criteria><File>XML/TiltedAxis.xml</File></UpdateDatabase></InGameActions>]]></InGameActionData>
-    <ActionCriteriaData><![CDATA[<ActionCriteria><Criteria id="TiltedAxisMapInUse"><MapInUse>{8c4ba8f6-0500-402b-9ec3-3d3760c491c2}/Maps/TiltedAxis.lua</MapInUse></Criteria></ActionCriteria>]]></ActionCriteriaData>
+    <ActionCriteriaData><![CDATA[<ActionCriteria><Criteria id="TiltedAxisMapInUse"><MapInUse>{8c4ba8f6-0500-402b-9ec3-3d3760c491c2}Maps/TiltedAxis.lua</MapInUse></Criteria></ActionCriteria>]]></ActionCriteriaData>
+    <AssociationData><![CDATA[<Associations>
+  <Dependency type="Dlc" title="Expansion: Gathering Storm" id="4873eb62-8ccc-4574-b784-dda455e74e68" />
+  <Reference type="Dlc" title="Expansion: Rise and Fall" id="1B28771A-C749-434B-9053-D1380C553DE9" />
+</Associations>]]></AssociationData>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Default' ">
     <OutputPath>.</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="Maps" />
+    <Folder Include="SQL" />
     <Folder Include="XML" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Maps\TiltedAxis.lua">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="SQL\Config.sql">
       <SubType>Content</SubType>
     </Content>
     <Content Include="XML\TiltedAxis.xml">
